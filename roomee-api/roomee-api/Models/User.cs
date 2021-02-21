@@ -27,7 +27,7 @@ namespace roomee_api.Models {
 		[JsonProperty(PropertyName = "statusId")]
 		public int StatusId { get; }
 
-		public static readonly string[] UpdateNames = { "firstName", "lastname", "preferredName", "password", "email", "statusId" };
+		public static readonly string[] UpdateNames = { "firstName", "lastName", "preferredName", "password", "email", "statusId" };
 
 		public User(int userId, string firstName, string lastName, string preferredName, string password, string email, int statusId) {
 			UserId = userId;

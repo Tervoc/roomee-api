@@ -29,7 +29,7 @@ namespace roomee_api {
 			services.AddCors(options => {
 				options.AddPolicy("default",
 					builder => {
-						builder.WithOrigins("http://localhost:3000/")
+						builder.WithOrigins("http://localhost:3000")
 						.AllowAnyHeader()
 						.AllowAnyMethod();
 					});

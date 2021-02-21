@@ -17,7 +17,7 @@ namespace roomee_api.Controllers {
 	[Route("v1/user")]
 	[ApiController]
 	public class UserController : ControllerBase {
-		[HttpGet]//post cretae patch update
+		[HttpGet]//post create patch update
 		public IActionResult GetUser([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
 			User user = null;
 			
