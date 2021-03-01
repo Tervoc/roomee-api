@@ -14,8 +14,8 @@ namespace roomee_api.Utilities {
 
 			TokenValidationParameters validationParameters = new TokenValidationParameters();
 			validationParameters.IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(Startup.JWTSecret));
-			validationParameters.ValidIssuer = "ecestockroom-api";
-			validationParameters.ValidAudience = "ecestockroom-client";
+			validationParameters.ValidIssuer = "roomee-api";
+			validationParameters.ValidAudience = "roomee-client";
 			validationParameters.ClockSkew = TimeSpan.Zero;
 
 			SecurityToken validatedToken;

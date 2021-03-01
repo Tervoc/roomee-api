@@ -105,6 +105,31 @@ namespace roomee_api.Models {
 			}
 		}
 
+		public static bool AssignToRoom(User user, Room room) {
+
+			if (user != null && room != null) {
+				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+					conn.Open();
+
+					SqlCommand command = new SqlCommand(@"INSERT INTO [RoomAssignment] (UserId, RoomId, StartDate, StatusId) VALUES (@userId, @roomId, CURRENT_TIMESTAMP, @statusId);", conn);
+					command.Parameters.AddWithValue("@userId", user.UserId);
+					command.Parameters.AddWithValue("@roomId", room.RoomId);
+					//command.Parameters.AddWithValue("@startDate", System.DateTime.Now);
+					command.Parameters.AddWithValue("@statusId", 1);
+
+					int rows = command.ExecuteNonQuery();
+
+					if (rows == 0) {
+						return false;
+					} else {
+						return true;
+					}
+				}
+			} else {
+				return false;
+			}
+		}
+
 		public List<Claim> ToClaims() {
 			return new List<Claim> {
 				new Claim("userId", UserId.ToString()),
