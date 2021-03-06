@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.Options;
+﻿/*
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu
+ * Date Created: February 15 2021
+ * Notes: N/A
+*/
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;

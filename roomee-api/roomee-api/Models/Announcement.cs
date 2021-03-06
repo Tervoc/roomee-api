@@ -1,5 +1,6 @@
-﻿/* Author(s): Majors, Andrew, admajors00@gmail.com
- * Date Created: 03/01/2021
+﻿/* 
+ * Author(s): Majors, Andrew, admajors00@gmail.com
+ * Date Created: March 01 2021
  * Notes: N/A
  */
 using Newtonsoft.Json;

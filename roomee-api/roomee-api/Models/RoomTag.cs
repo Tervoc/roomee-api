@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Author(s): Parrish, Christian christian.parrish@ttu.edu
+ * Date Created: March 05 2021
+ * Notes: N/A
+*/
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;

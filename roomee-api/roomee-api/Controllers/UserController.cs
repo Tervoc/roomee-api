@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu, Parrish, Christian christian.parrish@ttu.edu 
+ * Date Created: February 17 2021
+ * Notes: N/A
+*/
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
