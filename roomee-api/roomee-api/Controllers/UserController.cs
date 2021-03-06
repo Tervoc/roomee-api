@@ -17,9 +17,9 @@ namespace roomee_api.Controllers {
 	[Route("v1/user")]
 	[ApiController]
 	public class UserController : ControllerBase {
-		[HttpGet]//post create patch update
+		[HttpGet]
 		public IActionResult GetUser([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
-			User user = null;
+			User user;
 			
 			if (type.ToLower().Equals("id")) {
 				int userId;
@@ -42,10 +42,10 @@ namespace roomee_api.Controllers {
 			}
 		}
 
-		[HttpPost]
+		[HttpPost("create")]
 		public IActionResult CreateUser([FromBody][Required] User user) {
 			if(user.Email == string.Empty || user.Email == null || user.Password == string.Empty || user.Password == null) {
-				return Problem("could not process");
+				return Problem("email or password is empty");
 			}
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
@@ -68,7 +68,6 @@ namespace roomee_api.Controllers {
 				}
 
 			}
-
 			return Ok();
 		}
 

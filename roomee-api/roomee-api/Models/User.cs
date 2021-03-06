@@ -27,7 +27,7 @@ namespace roomee_api.Models {
 		[JsonProperty(PropertyName = "statusId")]
 		public int StatusId { get; }
 
-		public static readonly string[] UpdateNames = { "firstName", "lastName", "preferredName", "password", "email", "statusId" };
+		public static readonly string[] UpdateNames = { "firstName", "lastName", "preferredName", "password", "email", "statusId"};
 
 		public User(int userId, string firstName, string lastName, string preferredName, string password, string email, int statusId) {
 			UserId = userId;
@@ -102,31 +102,6 @@ namespace roomee_api.Models {
 						return null;
 					}
 				}
-			}
-		}
-
-		public static bool AssignToRoom(User user, Room room) {
-
-			if (user != null && room != null) {
-				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-					conn.Open();
-
-					SqlCommand command = new SqlCommand(@"INSERT INTO [RoomAssignment] (UserId, RoomId, StartDate, StatusId) VALUES (@userId, @roomId, CURRENT_TIMESTAMP, @statusId);", conn);
-					command.Parameters.AddWithValue("@userId", user.UserId);
-					command.Parameters.AddWithValue("@roomId", room.RoomId);
-					//command.Parameters.AddWithValue("@startDate", System.DateTime.Now);
-					command.Parameters.AddWithValue("@statusId", 1);
-
-					int rows = command.ExecuteNonQuery();
-
-					if (rows == 0) {
-						return false;
-					} else {
-						return true;
-					}
-				}
-			} else {
-				return false;
 			}
 		}
 

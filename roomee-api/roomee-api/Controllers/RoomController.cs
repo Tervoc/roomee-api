@@ -19,7 +19,7 @@ namespace roomee_api.Controllers {
 	public class RoomController : ControllerBase {
 		[HttpGet]
 		public IActionResult GetRoom([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
-			Room room = null;
+			Room room;
 
 			if (type.ToLower().Equals("id")) {
 				int roomId;
@@ -40,48 +40,37 @@ namespace roomee_api.Controllers {
 			}
 		}
 
-		[HttpPost]
-		public IActionResult CreateRoom([FromBody][Required] Room room, [FromQuery][Required] int userId) {
+		[HttpPost("create")]
+		public IActionResult CreateRoom([FromBody][Required] Room room, [FromHeader][Required] string token) {
 			if (room.RoomName == string.Empty || room.RoomName == null) {
-				return Problem("could not process");
+				return Problem("room name cannot be empty");
 			}
 
-			string roomTag = Utilities.RoomTagGenerator.FindUnusedTag(8);
+			Dictionary<string, string> userVals = Authentication.ReadToken(token);
 
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-				conn.Open();
+			if (!userVals.ContainsKey("userId") || userVals["userId"] == string.Empty || userVals["userId"] == null) {
+				return Problem("userId cannot be empty");
+			}
 
-				SqlCommand command = new SqlCommand(@"INSERT INTO [Room] (RoomName, StatusId) VALUES (@roomName, @statusId); INSERT INTO [RoomTag] (RoomId, RoomTag, CreationDate, ExpirationDate, StatusId) VALUES (SCOPE_IDENTITY(), @roomTag, CURRENT_TIMESTAMP, DATEADD(hh, 24, CURRENT_TIMESTAMP), @statusIdd)", conn);
-				command.Parameters.AddWithValue("@roomName", room.RoomName);
-				command.Parameters.AddWithValue("@statusId", 1);
-				command.Parameters.AddWithValue("@roomTag", roomTag);
-				command.Parameters.AddWithValue("@statusIdd", 1);
+			if (int.TryParse(userVals["userId"], out int userId)) {
+				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+					conn.Open();
 
-				int rows = command.ExecuteNonQuery();
+					SqlCommand command = new SqlCommand(@"INSERT INTO [Room] (RoomName, StatusId) VALUES (@roomName, @roomStatusId); INSERT INTO [RoomAssignment] (UserId, RoomId, StartTimestamp, StatusId) VALUES (@userId, SCOPE_IDENTITY(), CURRENT_TIMESTAMP, @assignStatusId)", conn);
+					command.Parameters.AddWithValue("@roomName", room.RoomName);
+					command.Parameters.AddWithValue("@roomStatusId", 1);
+					command.Parameters.AddWithValue("@userId", userId);
+					command.Parameters.AddWithValue("@assignStatusId", 1);
 
-				if (rows == 0) {
-					return Problem("error creating");
+					int rows = command.ExecuteNonQuery();
+
+					if (rows == 0) {
+						return Problem("error creating");
+					}
 				}
-
-			}
-
-			if (Models.User.AssignToRoom(Models.User.FromUserId(userId), Models.Room.FromRoomTag(roomTag))) {
 				return Ok();
 			} else {
-				return Problem("could not process");
-			}
-		}
-
-		[HttpPost("assign")]
-		public IActionResult AssignToRoom([FromBody][Required] string roomTag, [FromQuery][Required] int userId) {
-			if (roomTag == string.Empty || roomTag == null) {
-				return Problem("could not process");
-			}
-
-			if (Models.User.AssignToRoom(Models.User.FromUserId(userId), Models.Room.FromRoomTag(roomTag))) {
-				return Ok();
-			} else {
-				return Problem("could not process");
+				return Problem("userId must be of type int");
 			}
 		}
 
