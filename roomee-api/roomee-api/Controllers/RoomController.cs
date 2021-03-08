@@ -38,7 +38,7 @@ namespace roomee_api.Controllers {
 			}
 		}
 
-		[HttpPost("create")]
+		[HttpPost]
 		public IActionResult CreateRoom([FromBody][Required] Room room, [FromHeader][Required] string token) {
 			if (room.RoomName == string.Empty || room.RoomName == null) {
 				return Problem("room name cannot be empty");
