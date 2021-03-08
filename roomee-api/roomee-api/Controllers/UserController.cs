@@ -29,7 +29,8 @@ namespace roomee_api.Controllers {
 				} else {
 					return Problem("identifier must be an integer when type is id");
 				}
-			} else if (type.ToLower().Equals("email")) {
+			} 
+			else if (type.ToLower().Equals("email")) {
 				user = Models.User.FromEmail(identifier);
 			} else {
 				return Problem("invalid type");
