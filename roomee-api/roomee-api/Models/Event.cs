@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿//Author(s): Schmidt, Max(max.schmidt@ttu.edu)
+//Date Created: 03 / 07 / 2021
+//Notes: N/A
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,13 +15,13 @@ namespace roomee_api.Models
         public int EventId { get; }
 
         [JsonProperty(PropertyName = "creatorUserId")]
-        public int CreatorUserId { get; set; }
+        public int CreatorUserId { get; }
 
         [JsonProperty(PropertyName = "roomId")]
         public int RoomId { get; set; }
 
         [JsonProperty(PropertyName = "creationTimestamp")]
-        public DateTime CreationTimestamp { get; set; }
+        public DateTime CreationTimestamp { get; }
 
         [JsonProperty(PropertyName = "startTimestamp")]
         public DateTime StartTimestamp { get; set; }
@@ -35,7 +38,7 @@ namespace roomee_api.Models
         [JsonProperty(PropertyName = "statusId")]
         public int StatusId { get; }
 
-        public static readonly string[] UpdateNames = { "creatorUserId", "roomId", "creationTimestamp", "startTimestamp", "endTimestamp", "title", "description", "statusId" };
+        public static readonly string[] UpdateNames = { "roomId", "startTimestamp", "endTimestamp", "title", "description", "statusId" };
 
         public Event(int eventId, int creatorUserId, int roomId, DateTime creationTimestamp, DateTime startTimestamp, DateTime endTimestamp, string title, string description, int statusId)
         {

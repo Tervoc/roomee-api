@@ -1,4 +1,7 @@
-﻿using System;
+﻿//Author(s): Schmidt, Max(max.schmidt@ttu.edu)
+//Date Created: 03 / 07 / 2021
+//Notes: N/A
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
@@ -17,24 +20,14 @@ namespace roomee_api.Controllers{
     [Route("v1/event")]
     [ApiController]
     public class EventController : ControllerBase{
-        [HttpGet]
-        public IActionResult GetEvent([FromQuery][Required] string type, [FromQuery][Required] string identifier){
+		[HttpGet("{id}")]
+		public IActionResult GetEvent([FromRoute][Required] int id){
             Event Event = null; //It did not like it when I named the object event, it breaks everything, so I named it Event with a capital E. 
 
-			if (type.ToLower().Equals("id")){
-				int eventId;
+			int eventId = id;
 
-				if (int.TryParse(identifier, out eventId)){
-					Event = Models.Event.FromEventId(eventId);
-				}
-				else{
-					return Problem("identifier must be an integer when type is id");
-				}
-			}
-			else{
-				return Problem("invalid type");
-			}
-
+			Event = Models.Event.FromEventId(eventId);
+	
 			if (Event == null){
 				return NotFound("not found");
 			}
