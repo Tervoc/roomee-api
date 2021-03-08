@@ -22,17 +22,17 @@ namespace roomee_api.Controllers{
     public class EventController : ControllerBase{
 		[HttpGet("{id}")]
 		public IActionResult GetEvent([FromRoute][Required] int id){
-            Event Event = null; //It did not like it when I named the object event, it breaks everything, so I named it Event with a capital E. 
+			Event e;
 
 			int eventId = id;
 
-			Event = Models.Event.FromEventId(eventId);
+			e = Models.Event.FromEventId(eventId);
 	
-			if (Event == null){
+			if (e == null){
 				return NotFound("not found");
 			}
 			else{
-				return Ok(JsonConvert.SerializeObject(Event, Formatting.Indented));
+				return Ok(JsonConvert.SerializeObject(e, Formatting.Indented));
 			}
 		}
 
