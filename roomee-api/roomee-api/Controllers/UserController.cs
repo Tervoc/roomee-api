@@ -47,10 +47,14 @@ namespace roomee_api.Controllers {
 			}
 		}
 
-		[HttpPost("create")]
-		public IActionResult CreateUser([FromBody][Required] User user) {
+		[HttpPost]
+		public IActionResult CreateUser([FromBody][Required] User user, [FromHeader][Required] string token) {
 			if(user.Email == string.Empty || user.Email == null || user.Password == string.Empty || user.Password == null) {
 				return Problem("email or password is empty");
+			}
+
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
 			}
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
@@ -77,8 +81,11 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateUser([FromRoute] int id, [FromBody] Dictionary<string,string> patch){
-			foreach(string key in patch.Keys) {
+		public IActionResult UpdateUser([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string,string> patch){
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
+			foreach (string key in patch.Keys) {
 				if(Array.IndexOf(Models.User.UpdateNames, key) == -1) {
 					return BadRequest("invalid key");
 				}

@@ -19,10 +19,10 @@ namespace roomee_api.Models {
 		public int RoomId { get; set; }
 
 		[JsonProperty(PropertyName = "createdByUserId")]
-		public int CreatedByUserId { get; set; }
+		public int CreatedByUserId { get; }
 
 		[JsonProperty(PropertyName = "creationTimestamp")]
-		public DateTime CreationTimestamp { get; set; }
+		public DateTime CreationTimestamp { get; }
 
 		[JsonProperty(PropertyName = "title")]
 		public string Title { get; set; }

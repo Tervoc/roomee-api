@@ -22,18 +22,14 @@ namespace roomee_api.Controllers {
 	[Route("v1/roomTag")]
 	[ApiController]
 	public class RoomTagController : ControllerBase {
-		[HttpGet]
-		public IActionResult GetRoomTag([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
-			RoomTag roomTag;
-			if (type.ToLower().Equals("roomid")) {
-				if(int.TryParse(identifier, out int roomId)) {
-					roomTag = Models.RoomTag.FromRoomTagId(roomId);
-				} else {
-					return Problem("identifier must be of type int");
-				}
-			} else {
-				return Problem("invalid type");
+		[HttpGet("{id}")]
+		public IActionResult GetRoomTag([FromRoute][Required] int id, [FromHeader][Required] string token) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
 			}
+			RoomTag roomTag;
+
+			roomTag = Models.RoomTag.FromRoomTagId(id);
 
 			if (roomTag == null) {
 				return NotFound("not found");
@@ -42,8 +38,41 @@ namespace roomee_api.Controllers {
 			}
 		}
 
-		[HttpPost("generate")]
-		public IActionResult GenerateNewTag ([FromQuery][Required] int roomId) {
+		[HttpPost]
+		public IActionResult GenerateNewTag ([FromQuery][Required] int roomId, [FromHeader][Required] string token) {
+			Dictionary<string, string> userVals;
+
+			if (Authentication.IsTokenValid(token)) {
+				userVals = Authentication.ReadToken(token);
+			} else {
+				return Problem("token is not valid");
+			}
+
+			if(int.TryParse(userVals["userId"], out int userId)) {
+				if (Models.User.FromUserId(userId) != null) {
+					using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+						conn.Open();
+
+						SqlCommand command = new SqlCommand(@"SELECT * FROM [RoomAssignment] WHERE (UserId = @userId) AND (RoomId = @roomId) AND (StatusId = @statusId);", conn);
+						command.Parameters.AddWithValue("@userId", userId);
+						command.Parameters.AddWithValue("@roomId", roomId);
+						command.Parameters.AddWithValue("@statusId", 1);
+
+						using (SqlDataReader reader = command.ExecuteReader()) {
+							if (!reader.HasRows) {
+								return Problem("user is not assigned to this room");
+							} 
+						}
+					}
+				} else {
+					return Problem("user does not exist");
+				}
+			} else {
+				return Problem("user Id must be of type int");
+			}
+
+
+
 			string tagValue = Utilities.RoomTagGenerator.FindUnusedTag();
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
@@ -69,10 +98,12 @@ namespace roomee_api.Controllers {
 				return Problem("room tag cannot be empty");
 			}
 
-			Dictionary<string, string> userVals = Authentication.ReadToken(token);
+			Dictionary<string, string> userVals;
 
-			if (!userVals.ContainsKey("userId") || userVals["userId"] == string.Empty || userVals["userId"] == null) {
-				return Problem("userId not found");
+			if (Authentication.IsTokenValid(token)) {
+				userVals = Authentication.ReadToken(token);
+			} else {
+				return Problem("token is not valid");
 			}
 
 			if (int.TryParse(userVals["userId"], out int userId)) {
@@ -103,7 +134,10 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateRoom([FromRoute] int id, [FromBody] Dictionary<string, string> patch) {
+		public IActionResult UpdateRoom([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
 			foreach (string key in patch.Keys) {
 				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1) {
 					return BadRequest("invalid key");

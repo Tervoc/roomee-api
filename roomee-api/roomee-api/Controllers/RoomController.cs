@@ -22,21 +22,14 @@ namespace roomee_api.Controllers {
 	[Route("v1/room")]
 	[ApiController]
 	public class RoomController : ControllerBase {
-		[HttpGet]
-		public IActionResult GetRoom([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
+		[HttpGet("{id}")]
+		public IActionResult GetRoom([FromRoute][Required] int id, [FromHeader][Required] string token) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
 			Room room;
 
-			if (type.ToLower().Equals("id")) {
-				int roomId;
-
-				if (int.TryParse(identifier, out roomId)) {
-					room = Models.Room.FromRoomId(roomId);
-				} else {
-					return Problem("identifier must be an integer when type is id");
-				}
-			} else {
-				return Problem("invalid type");
-			}
+			room = Models.Room.FromRoomId(id);
 
 			if (room == null) {
 				return NotFound("not found");
@@ -51,12 +44,14 @@ namespace roomee_api.Controllers {
 				return Problem("room name cannot be empty");
 			}
 
-			Dictionary<string, string> userVals = Authentication.ReadToken(token);
+			Dictionary<string, string> userVals;
 
-			if (!userVals.ContainsKey("userId") || userVals["userId"] == string.Empty || userVals["userId"] == null) {
-				return Problem("userId cannot be empty");
+			if (Authentication.IsTokenValid(token)) {
+				userVals = Authentication.ReadToken(token);
+			} else {
+				return Problem("token is not valid");
 			}
-
+			
 			if (int.TryParse(userVals["userId"], out int userId)) {
 				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
 					conn.Open();
@@ -80,7 +75,10 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateRoom([FromRoute] int id, [FromBody] Dictionary<string, string> patch) {
+		public IActionResult UpdateRoom([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
 			foreach (string key in patch.Keys) {
 				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1) {
 					return BadRequest("invalid key");
