@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\chris\\Documents\\School_and_projects\\2021\\Software_Engineering\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj": {}
+    "C:\\Users\\maxam\\Documents\\GithubStuff\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\chris\\Documents\\School_and_projects\\2021\\Software_Engineering\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj": {
+    "C:\\Users\\maxam\\Documents\\GithubStuff\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\chris\\Documents\\School_and_projects\\2021\\Software_Engineering\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj",
+        "projectUniqueName": "C:\\Users\\maxam\\Documents\\GithubStuff\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj",
         "projectName": "roomee-api",
-        "projectPath": "C:\\Users\\chris\\Documents\\School_and_projects\\2021\\Software_Engineering\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj",
-        "packagesPath": "C:\\Users\\chris\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\chris\\Documents\\School_and_projects\\2021\\Software_Engineering\\roomee-api\\roomee-api\\roomee-api\\obj\\",
+        "projectPath": "C:\\Users\\maxam\\Documents\\GithubStuff\\roomee-api\\roomee-api\\roomee-api\\roomee-api.csproj",
+        "packagesPath": "C:\\Users\\maxam\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\maxam\\Documents\\GithubStuff\\roomee-api\\roomee-api\\roomee-api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\chris\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\maxam\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
