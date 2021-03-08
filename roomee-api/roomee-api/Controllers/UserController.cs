@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu, Parrish, Christian christian.parrish@ttu.edu 
+ * Date Created: February 17 2021
+ * Notes: N/A
+*/
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
@@ -17,9 +22,9 @@ namespace roomee_api.Controllers {
 	[Route("v1/user")]
 	[ApiController]
 	public class UserController : ControllerBase {
-		[HttpGet]//post create patch update
+		[HttpGet]
 		public IActionResult GetUser([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
-			User user = null;
+			User user;
 			
 			if (type.ToLower().Equals("id")) {
 				int userId;
@@ -44,9 +49,13 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPost]
-		public IActionResult CreateUser([FromBody][Required] User user) {
+		public IActionResult CreateUser([FromBody][Required] User user, [FromHeader][Required] string token) {
 			if(user.Email == string.Empty || user.Email == null || user.Password == string.Empty || user.Password == null) {
-				return Problem("could not process");
+				return Problem("email or password is empty");
+			}
+
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
 			}
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
@@ -69,13 +78,15 @@ namespace roomee_api.Controllers {
 				}
 
 			}
-
 			return Ok();
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateUser([FromRoute] int id, [FromBody] Dictionary<string,string> patch){
-			foreach(string key in patch.Keys) {
+		public IActionResult UpdateUser([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string,string> patch){
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
+			foreach (string key in patch.Keys) {
 				if(Array.IndexOf(Models.User.UpdateNames, key) == -1) {
 					return BadRequest("invalid key");
 				}

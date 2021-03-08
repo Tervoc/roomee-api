@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu
+ * Date Created: February 15 2021
+ * Notes: N/A
+*/
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;

@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Author(s): Parrish, Christian christian.parrish@ttu.edu, Padgett, Matt matthew.padgett@ttu.edu
+ * Date Created: March 01 2021
+ * Notes: N/A
+*/
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
@@ -17,21 +22,14 @@ namespace roomee_api.Controllers {
 	[Route("v1/room")]
 	[ApiController]
 	public class RoomController : ControllerBase {
-		[HttpGet]
-		public IActionResult GetRoom([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
-			Room room = null;
-
-			if (type.ToLower().Equals("id")) {
-				int roomId;
-
-				if (int.TryParse(identifier, out roomId)) {
-					room = Models.Room.FromRoomId(roomId);
-				} else {
-					return Problem("identifier must be an integer when type is id");
-				}
-			} else {
-				return Problem("invalid type");
+		[HttpGet("{id}")]
+		public IActionResult GetRoom([FromRoute][Required] int id, [FromHeader][Required] string token) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
 			}
+			Room room;
+
+			room = Models.Room.FromRoomId(id);
 
 			if (room == null) {
 				return NotFound("not found");
@@ -41,52 +39,46 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPost]
-		public IActionResult CreateRoom([FromBody][Required] Room room, [FromQuery][Required] int userId) {
+		public IActionResult CreateRoom([FromBody][Required] Room room, [FromHeader][Required] string token) {
 			if (room.RoomName == string.Empty || room.RoomName == null) {
-				return Problem("could not process");
+				return Problem("room name cannot be empty");
 			}
 
-			string roomTag = Utilities.RoomTagGenerator.FindUnusedTag(8);
+			Dictionary<string, string> userVals;
 
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-				conn.Open();
+			if (Authentication.IsTokenValid(token)) {
+				userVals = Authentication.ReadToken(token);
+			} else {
+				return Problem("token is not valid");
+			}
+			
+			if (int.TryParse(userVals["userId"], out int userId)) {
+				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+					conn.Open();
 
-				SqlCommand command = new SqlCommand(@"INSERT INTO [Room] (RoomName, StatusId) VALUES (@roomName, @statusId); INSERT INTO [RoomTag] (RoomId, RoomTag, CreationDate, ExpirationDate, StatusId) VALUES (SCOPE_IDENTITY(), @roomTag, CURRENT_TIMESTAMP, DATEADD(hh, 24, CURRENT_TIMESTAMP), @statusIdd)", conn);
-				command.Parameters.AddWithValue("@roomName", room.RoomName);
-				command.Parameters.AddWithValue("@statusId", 1);
-				command.Parameters.AddWithValue("@roomTag", roomTag);
-				command.Parameters.AddWithValue("@statusIdd", 1);
+					SqlCommand command = new SqlCommand(@"INSERT INTO [Room] (RoomName, StatusId) VALUES (@roomName, @roomStatusId); INSERT INTO [RoomAssignment] (UserId, RoomId, StartTimestamp, StatusId) VALUES (@userId, SCOPE_IDENTITY(), CURRENT_TIMESTAMP, @assignStatusId)", conn);
+					command.Parameters.AddWithValue("@roomName", room.RoomName);
+					command.Parameters.AddWithValue("@roomStatusId", 1);
+					command.Parameters.AddWithValue("@userId", userId);
+					command.Parameters.AddWithValue("@assignStatusId", 1);
 
-				int rows = command.ExecuteNonQuery();
+					int rows = command.ExecuteNonQuery();
 
-				if (rows == 0) {
-					return Problem("error creating");
+					if (rows == 0) {
+						return Problem("error creating");
+					}
 				}
-
-			}
-
-			if (Models.User.AssignToRoom(Models.User.FromUserId(userId), Models.Room.FromRoomTag(roomTag))) {
 				return Ok();
 			} else {
-				return Problem("could not process");
-			}
-		}
-
-		[HttpPost("assign")]
-		public IActionResult AssignToRoom([FromBody][Required] string roomTag, [FromQuery][Required] int userId) {
-			if (roomTag == string.Empty || roomTag == null) {
-				return Problem("could not process");
-			}
-
-			if (Models.User.AssignToRoom(Models.User.FromUserId(userId), Models.Room.FromRoomTag(roomTag))) {
-				return Ok();
-			} else {
-				return Problem("could not process");
+				return Problem("userId must be of type int");
 			}
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateRoom([FromRoute] int id, [FromBody] Dictionary<string, string> patch) {
+		public IActionResult UpdateRoom([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
 			foreach (string key in patch.Keys) {
 				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1) {
 					return BadRequest("invalid key");

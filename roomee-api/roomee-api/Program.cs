@@ -1,3 +1,8 @@
+/*
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu
+ * Date Created: February 15 2021
+ * Notes: N/A
+*/
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;

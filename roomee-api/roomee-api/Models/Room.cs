@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Author(s): Parrish, Christian christian.parrish@ttu.edu, Padgett, Matt matthew.padgett@ttu.edu
+ * Date Created: March 01 2021
+ * Notes: N/A
+*/
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -49,7 +54,7 @@ namespace roomee_api.Models {
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
 				conn.Open();
 
-				SqlCommand command = new SqlCommand(@"SELECT * FROM [RoomTag] WHERE RoomTag = @param1;", conn);
+				SqlCommand command = new SqlCommand(@"SELECT * FROM [RoomTag] WHERE Tag = @param1;", conn);
 				command.Parameters.AddWithValue("@param1", roomTag);
 
 				using (SqlDataReader reader = command.ExecuteReader()) {
@@ -57,30 +62,6 @@ namespace roomee_api.Models {
 						reader.Read();
 
 						return FromRoomId(reader.GetInt32(1));
-					} else {
-						return null;
-					}
-				}
-			}
-		}
-
-		public static string GenerateNewTag(int roomId) {
-
-			string roomTag = Utilities.RoomTagGenerator.FindUnusedTag(8);
-		
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-				conn.Open();
-
-				SqlCommand command = new SqlCommand(@"INSERT INTO [RoomTag] (RoomId, RoomTag, CreationDate, ExpirationDate, StatusId) VALUES (@roomId, @roomTag, CURRENT_TIMESTAMP, DATEADD(hh, 24, CURRENT_TIMESTAMP), @statusId );", conn);
-				command.Parameters.AddWithValue("@roomId", roomId);
-				command.Parameters.AddWithValue("@roomTag", roomTag);
-				command.Parameters.AddWithValue("@statusId", 1);
-
-				using (SqlDataReader reader = command.ExecuteReader()) {
-					if (reader.HasRows) {
-						reader.Read();
-
-						return roomTag;
 					} else {
 						return null;
 					}
