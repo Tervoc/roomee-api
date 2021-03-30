@@ -46,53 +46,6 @@ namespace roomee_api.Controllers {
 				return Ok(JsonConvert.SerializeObject(user, Formatting.Indented));
 			}
 		}
-		
-		[HttpGet]
-		[Route("roomees/{roomId}")]
-		public IActionResult GetMyRoomees([FromRoute][Required] string roomId, [FromHeader][Required] string token) {
-			if (roomId == string.Empty || roomId == null) {
-				return Problem("RoomId cannot be empty");
-			}
-			
-			if (!Authentication.IsTokenValid(token)) {
-				return Problem("token is not valid");
-			}
-
-			List<int> roomUserIds = new List<int>(); 
-			List<UserWithPreferences> roomUsers = new List<UserWithPreferences>();
-
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-				conn.Open();
-
-				SqlCommand command = new SqlCommand(@"SELECT * FROM [RoomAssignment] WHERE (RoomId = @roomId) AND (StatusId = @statusId);", conn);
-				command.Parameters.AddWithValue("@roomId", roomId);
-				command.Parameters.AddWithValue("@statusId", 1);
-
-				using (SqlDataReader reader = command.ExecuteReader()) {
-					if (reader.HasRows) {
-						while(reader.Read()) {
-							roomUserIds.Add(reader.GetInt32(1));
-						}
-					} else {
-						return Problem("No roomees found");
-					}
-				}
-			}
-			
-			foreach (int userId in roomUserIds) {
-
-				UserWithPreferences user = Models.UserWithPreferences.FromUserId(userId);
-					
-				if (user == null) {
-					return Problem("problem fetching roomees");
-				}
-				roomUsers.Add(user);
-			}
-			
-
-			return Ok(JsonConvert.SerializeObject(roomUsers, Formatting.Indented));
-
-		}
 
 		[HttpPost]
 		public IActionResult CreateUser([FromBody][Required] User user/*, [FromHeader][Required] string token*/) {
