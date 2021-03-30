@@ -25,17 +25,16 @@ namespace roomee_api.Controllers {
 		[HttpGet]
 		public IActionResult GetUser([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
 			User user;
-			
+
 			if (type.ToLower().Equals("id")) {
 				int userId;
 
-				if(int.TryParse(identifier, out userId)) {
+				if (int.TryParse(identifier, out userId)) {
 					user = Models.User.FromUserId(userId);
 				} else {
 					return Problem("identifier must be an integer when type is id");
 				}
-			} 
-			else if (type.ToLower().Equals("email")) {
+			} else if (type.ToLower().Equals("email")) {
 				user = Models.User.FromEmail(identifier);
 			} else {
 				return Problem("invalid type");
@@ -49,14 +48,14 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPost]
-		public IActionResult CreateUser([FromBody][Required] User user, [FromHeader][Required] string token) {
+		public IActionResult CreateUser([FromBody][Required] User user/*, [FromHeader][Required] string token*/) {
 			if(user.Email == string.Empty || user.Email == null || user.Password == string.Empty || user.Password == null) {
 				return Problem("email or password is empty");
 			}
 
-			if (!Authentication.IsTokenValid(token)) {
+			/*if (!Authentication.IsTokenValid(token)) {
 				return Problem("token is not valid");
-			}
+			}*/
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
 				conn.Open();
