@@ -1,4 +1,4 @@
-﻿/* Author(s): Schmidt, Max, fuckyou123@gmail.com
+﻿/* Author(s): Schmidt, Max, max.schmidt@ttu.com
  * Date Created: 03/01/2021
  * Notes: N/A
  */
@@ -80,13 +80,13 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateEvent([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch){
+		public IActionResult UpdateAnnouncement([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch){
 			if (!Authentication.IsTokenValid(token)){
 				return Problem("token is not valid");
 			}
 
 			foreach (string key in patch.Keys){
-				if (Array.IndexOf(Models.Event.UpdateNames, key) == -1){
+				if (Array.IndexOf(Models.Announcement.UpdateNames, key) == -1){
 					return BadRequest("invalid key");
 				}
 			}
