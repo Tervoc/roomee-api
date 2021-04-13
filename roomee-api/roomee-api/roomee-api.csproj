@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>roomee_api</RootNamespace>
+    <UserSecretsId>ff311478-89f1-434d-bf20-e29f1d6d7a08</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

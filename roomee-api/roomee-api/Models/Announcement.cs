@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace roomee_api.Models {
 	public class Announcement {
-		[JsonProperty(PropertyName = "annoucementId")]
-		public int AnnoucementId { get; }
+		[JsonProperty(PropertyName = "announcementId")]
+		public int AnnouncementId { get; }
 
 		[JsonProperty(PropertyName = "roomId")]
 		public int RoomId { get; set; }

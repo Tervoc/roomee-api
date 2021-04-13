@@ -1,4 +1,4 @@
-﻿/* Author(s): Schmidt, Max, max.schmidt@ttu.com
+﻿/* Author(s): Schmidt, Max, max.schmidt@ttu.edu
  * Date Created: 03/01/2021
  * Notes: N/A
  */
@@ -18,18 +18,63 @@ using roomee_api.Models;
 using roomee_api.Utilities;
 
 namespace roomee_api.Controllers {
-	[Route("v1/anouncement")]
+	[Route("v1/announcement")]
 	[ApiController]
-	public class AnnouncementController : ControllerBase{
-		[HttpGet]//post create patch update
+	public class AnnouncementController : ControllerBase {
+		[HttpGet]	
+		public IActionResult GetAnnouncements([FromHeader][Required] string token) {
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
+
+			List<Announcement> announcements = new List<Announcement>();
+
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+				conn.Open();
+
+				SqlCommand command = new SqlCommand("SELECT * FROM Announcement WHERE StatusId = 1 ORDER BY CreationTimestamp DESC;", conn);
+
+				using (SqlDataReader reader = command.ExecuteReader()) {
+					if (reader.HasRows) {
+						while (reader.Read()) {
+							announcements.Add(new Announcement(
+								reader.GetInt32(0),
+								reader.GetInt32(1),
+								reader.GetInt32(2),
+								reader.GetDateTime(3),
+								reader.GetString(4),
+								reader.GetString(5),
+								reader.GetInt32(6)
+							));
+						}
+					}
+				}
+			}
+
+			List<Dictionary<string, object>> returnList = new List<Dictionary<string, object>>();
+
+			foreach (Announcement announcement in announcements) {
+				Dictionary<string, object> dict = new Dictionary<string, object> {
+					{ "announcement", announcement },
+					{ "user", Models.User.FromUserId(announcement.CreatedByUserId) }
+				};
+
+				returnList.Add(dict);
+			}
+
+			return Ok(JsonConvert.SerializeObject(returnList, Formatting.Indented));
+		}
+
+		[Route ("fromType")]//post create patch update
+		[HttpGet]
 		public IActionResult GetAnnouncement([FromQuery][Required] string type, [FromQuery][Required] string identifier) {
 			Announcement announcement = null;
 
 			if (type.ToLower().Equals("id")) {
-				int annoucementId;
+				int announcementId;
 
-				if (int.TryParse(identifier, out annoucementId)) {
-					announcement = Models.Announcement.FromAnnouncementId(annoucementId);
+				if (int.TryParse(identifier, out announcementId)) {
+					announcement = Models.Announcement.FromAnnouncementId(announcementId);
 				} else {
 					return Problem("identifier must be an integer when type is id");
 				}
@@ -61,7 +106,7 @@ namespace roomee_api.Controllers {
 				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
 					conn.Open();
 
-					SqlCommand command = new SqlCommand(@"INSERT INTO [Announcement] (RoomId, CreatedByUserId, CreationTimestamp, Title, Body, StatusId) VALUES (@roomId, @createdByUserId, CURRENT_TIMESTAMP, @title, @body, @statusId);", conn);
+					SqlCommand command = new SqlCommand(@"INSERT INTO dbo.Announcement (RoomId, CreatedByUserId, CreationTimestamp, Title, Body, StatusId) VALUES (@roomId, @createdByUserId, CURRENT_TIMESTAMP, @title, @body, @statusId);", conn);
 					command.Parameters.AddWithValue("@roomId", announcement.RoomId);
 					command.Parameters.AddWithValue("@createdByUserId", announcement.CreatedByUserId);
 					command.Parameters.AddWithValue("@title", announcement.Title);

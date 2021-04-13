@@ -32,8 +32,19 @@ namespace roomee_api {
 			services.AddControllers().AddNewtonsoftJson();
 
 			services.AddCors(options => {
+				options.AddPolicy("local",
+					builder => {
+						builder.WithOrigins("http://localhost:3000")
+						.AllowAnyHeader()
+						.AllowAnyMethod();
+					});
+
 				options.AddPolicy("default",
 					builder => {
+						builder.WithOrigins("http://roomee.mpadgett.net")
+						.AllowAnyHeader()
+						.AllowAnyMethod();
+
 						builder.WithOrigins("http://localhost:3000")
 						.AllowAnyHeader()
 						.AllowAnyMethod();
@@ -60,7 +71,7 @@ namespace roomee_api {
 			ConnectionString = Configuration.GetConnectionString("RoomeeConnStr");
 			JWTSecret = Configuration.GetValue<string>("JWTSecret");
 
-			app.UseCors("default"); //cross origin resource sharing is fucking stupid --rip(matt <3 )
+			app.UseCors("default");
 
 			app.UseHttpsRedirection();
 
