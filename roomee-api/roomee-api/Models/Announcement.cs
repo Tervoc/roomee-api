@@ -33,10 +33,10 @@ namespace roomee_api.Models {
 		[JsonProperty(PropertyName = "statusId")]
 		public int StatusId { get; }
 
-		public static readonly string[] UpdateNames = { "roomId", "creationTimestamp", "title", "body", "statusId" };
+		public static readonly string[] UpdateNames = { "roomId", "createdByUserId", "creationTimestamp", "title", "body", "statusId" };
 
 		public Announcement(int annoucementId, int roomId, int createdByUserId, DateTime creationTimestamp, string title, string body, int statusId) {
-			AnnoucementId = annoucementId;
+			AnnouncementId = annoucementId;
 			RoomId = roomId;
 			CreatedByUserId = createdByUserId;
 			CreationTimestamp = creationTimestamp;

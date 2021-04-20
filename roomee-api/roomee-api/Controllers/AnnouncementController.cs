@@ -102,26 +102,28 @@ namespace roomee_api.Controllers {
 				return Problem("could not process");
 			}
 
-			if (int.TryParse(userVals["userId"], out int userId)){
-				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
-					conn.Open();
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
+				conn.Open();
 
-					SqlCommand command = new SqlCommand(@"INSERT INTO dbo.Announcement (RoomId, CreatedByUserId, CreationTimestamp, Title, Body, StatusId) VALUES (@roomId, @createdByUserId, CURRENT_TIMESTAMP, @title, @body, @statusId);", conn);
-					command.Parameters.AddWithValue("@roomId", announcement.RoomId);
-					command.Parameters.AddWithValue("@createdByUserId", announcement.CreatedByUserId);
-					command.Parameters.AddWithValue("@title", announcement.Title);
-					command.Parameters.AddWithValue("@body", announcement.Body);
-					command.Parameters.AddWithValue("@statusId", 1);
+				SqlCommand command = QueryBuilder.InsertBuilder<Announcement>("dbo.usp_InsertAnnouncement", announcement, token);
+				command.Connection = conn;
 
-					int rows = command.ExecuteNonQuery();
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
 
-					if (rows == 0){
-						return Problem("error creating");
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
 					}
-
+					else{
+						return Problem("error executing");
+					}
 				}
 			}
-			return Ok(); 
 		}
 
 		[HttpPatch("{id}")]
@@ -129,27 +131,33 @@ namespace roomee_api.Controllers {
 			if (!Authentication.IsTokenValid(token)){
 				return Problem("token is not valid");
 			}
-
 			foreach (string key in patch.Keys){
 				if (Array.IndexOf(Models.Announcement.UpdateNames, key) == -1){
 					return BadRequest("invalid key");
 				}
 			}
 
-			SqlCommand command = QueryBuilder.UpdateBuilder(patch, "[Announcement]", "AnnouncementId", id);
+			SqlCommand command = QueryBuilder.UpdateBuilder<Announcement>("dbo.usp_UpdateAnnouncement", id, patch, token);
 
 			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
 				conn.Open();
 
 				command.Connection = conn;
 
-				int rows = command.ExecuteNonQuery();
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
 
-				if (rows != 0){
-					return Ok();
-				}
-				else{
-					return Problem("could not process");
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
+					}
 				}
 			}
 		}

@@ -134,29 +134,38 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateRoom([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
-			if (!Authentication.IsTokenValid(token)) {
+		public IActionResult UpdateRoomTag([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
+			if (!Authentication.IsTokenValid(token)){
 				return Problem("token is not valid");
 			}
-			foreach (string key in patch.Keys) {
-				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1) {
+			foreach (string key in patch.Keys){
+				if (Array.IndexOf(Models.RoomTag.UpdateNames, key) == -1){
 					return BadRequest("invalid key");
 				}
 			}
 
-			SqlCommand command = QueryBuilder.UpdateBuilder(patch, "[RoomTag]", "RoomTagId", id);
+			SqlCommand command = QueryBuilder.UpdateBuilder<RoomTag>("dbo.usp_UpdateRoomTag", id, patch, token);
 
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
 				conn.Open();
 
 				command.Connection = conn;
 
-				int rows = command.ExecuteNonQuery();
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
 
-				if (rows == 0) {
-					return Problem("could not process");
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
+					}
 				}
-				return Ok();
 			}
 		}
 	}

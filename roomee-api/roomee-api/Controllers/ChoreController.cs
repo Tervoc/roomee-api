@@ -1,5 +1,5 @@
 ﻿/*
- * Author(s): Parrish, Christian christian.parrish@ttu.edu 
+ * Author(s): Parrish, Christian christian.parrish@ttu.edu, Schmidt, Max max.schmidt@ttu.edu
  * Date Created: April 8 2021
  * Notes: N/A
 */
@@ -91,6 +91,43 @@ namespace roomee_api.Controllers {
 
 			}
 			return Ok();
+		}
+
+		[HttpPatch("{id}")]
+		public IActionResult UpdateChore([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch)
+		{
+			if (!Authentication.IsTokenValid(token)){
+				return Problem("token is not valid");
+			}
+			foreach (string key in patch.Keys){
+				if (Array.IndexOf(Models.Chore.UpdateNames, key) == -1){
+					return BadRequest("invalid key");
+				}
+			}
+
+			SqlCommand command = QueryBuilder.UpdateBuilder<Chore>("dbo.usp_UpdateChore", id, patch, token);
+
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
+				conn.Open();
+
+				command.Connection = conn;
+
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
+
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
+					}
+				}
+			}
 		}
 	}
 }

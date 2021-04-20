@@ -1,5 +1,5 @@
 ﻿/*
- * Author(s): Padgett, Matt matthew.padgett@ttu.edu, Parrish, Christian christian.parrish@ttu.edu 
+ * Author(s): Padgett, Matt matthew.padgett@ttu.edu, Parrish, Christian christian.parrish@ttu.edu, Schmidt, Max max.schmidt@ttu.edu
  * Date Created: February 17 2021
  * Notes: N/A
 */
@@ -81,34 +81,42 @@ namespace roomee_api.Controllers {
 		}
 
 		[HttpPatch("{id}")]
-		public IActionResult UpdateUser([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string,string> patch){
-			if (!Authentication.IsTokenValid(token)) {
+		public IActionResult UpdateUser([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch){
+			if (!Authentication.IsTokenValid(token)){
 				return Problem("token is not valid");
 			}
-			foreach (string key in patch.Keys) {
-				if(Array.IndexOf(Models.User.UpdateNames, key) == -1) {
+			foreach (string key in patch.Keys){
+				if (Array.IndexOf(Models.User.UpdateNames, key) == -1){
 					return BadRequest("invalid key");
 				}
 			}
-			
-			if (patch.ContainsKey("password")) {
+
+			if (patch.ContainsKey("password")){
 				PasswordHasher hasher = new PasswordHasher();
 				patch["password"] = hasher.Hash(patch["password"]);
 			}
 
-			SqlCommand command = QueryBuilder.UpdateBuilder(patch, "[User]", "UserId", id);
+			SqlCommand command = QueryBuilder.UpdateBuilder<User>("dbo.usp_UpdateUser", id, patch, token);
 
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
 				conn.Open();
 
 				command.Connection = conn;
 
-				int rows = command.ExecuteNonQuery();
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
 
-				if(rows != 0) {
-					return Ok();
-				} else {
-					return Problem("could not process");
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
+					}
 				}
 			}
 		}

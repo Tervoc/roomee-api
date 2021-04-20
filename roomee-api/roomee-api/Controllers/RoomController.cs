@@ -1,5 +1,5 @@
 ﻿/*
- * Author(s): Parrish, Christian christian.parrish@ttu.edu, Padgett, Matt matthew.padgett@ttu.edu
+ * Author(s): Parrish, Christian christian.parrish@ttu.edu, Padgett, Matt matthew.padgett@ttu.edu, Schmidt, Max max.schmidt@ttu.edu
  * Date Created: March 01 2021
  * Notes: N/A
 */
@@ -43,61 +43,71 @@ namespace roomee_api.Controllers {
 			if (room.RoomName == string.Empty || room.RoomName == null) {
 				return Problem("room name cannot be empty");
 			}
-
-			Dictionary<string, string> userVals;
+			
+			Dictionary<string, string> roomVals;
 
 			if (Authentication.IsTokenValid(token)) {
-				userVals = Authentication.ReadToken(token);
+				roomVals = Authentication.ReadToken(token);
 			} else {
 				return Problem("token is not valid");
 			}
-			
-			if (int.TryParse(userVals["userId"], out int userId)) {
-				using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
-					conn.Open();
 
-					SqlCommand command = new SqlCommand(@"INSERT INTO [Room] (RoomName, StatusId) VALUES (@roomName, @roomStatusId); INSERT INTO [RoomAssignment] (UserId, RoomId, StartTimestamp, StatusId) VALUES (@userId, SCOPE_IDENTITY(), CURRENT_TIMESTAMP, @assignStatusId)", conn);
-					command.Parameters.AddWithValue("@roomName", room.RoomName);
-					command.Parameters.AddWithValue("@roomStatusId", 1);
-					command.Parameters.AddWithValue("@userId", userId);
-					command.Parameters.AddWithValue("@assignStatusId", 1);
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
+				conn.Open();
 
-					int rows = command.ExecuteNonQuery();
+				SqlCommand command = QueryBuilder.InsertBuilder<Room>("dbo.usp_InsertRoom", room, token);
+				command.Connection = conn;
 
-					if (rows == 0) {
-						return Problem("error creating");
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
+
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
 					}
 				}
-				return Ok();
-			} else {
-				return Problem("userId must be of type int");
 			}
 		}
 
 		[HttpPatch("{id}")]
 		public IActionResult UpdateRoom([FromRoute] int id, [FromHeader][Required] string token, [FromBody] Dictionary<string, string> patch) {
-			if (!Authentication.IsTokenValid(token)) {
+			if (!Authentication.IsTokenValid(token)){
 				return Problem("token is not valid");
 			}
-			foreach (string key in patch.Keys) {
-				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1) {
+			foreach (string key in patch.Keys){
+				if (Array.IndexOf(Models.Room.UpdateNames, key) == -1){
 					return BadRequest("invalid key");
 				}
 			}
 
-			SqlCommand command = QueryBuilder.UpdateBuilder(patch, "[Room]", "RoomId", id);
+			SqlCommand command = QueryBuilder.UpdateBuilder<Room>("dbo.usp_UpdateRoom", id, patch, token);
 
-			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
 				conn.Open();
 
 				command.Connection = conn;
 
-				int rows = command.ExecuteNonQuery();
+				using (SqlDataReader reader = command.ExecuteReader()){
+					if (reader.HasRows){
+						reader.Read();
 
-				if (rows != 0) {
-					return Ok();
-				} else {
-					return Problem("could not process");
+						if (reader.GetInt32(0) < 1){
+							return Problem(reader.GetString(1));
+						}
+						else{
+							return Ok();
+						}
+					}
+					else{
+						return Problem("error executing");
+					}
 				}
 			}
 		}
