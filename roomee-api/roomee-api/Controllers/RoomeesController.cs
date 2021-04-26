@@ -21,7 +21,7 @@ using roomee_api.Utilities;
 namespace roomee_api.Controllers {
 	[Route("v1/roomees")]
 	[ApiController]
-	public class roomeesController : ControllerBase {
+	public class RoomeesController : ControllerBase {
 		[HttpGet]
 		[Route("{roomId}")]
 		public IActionResult GetMyRoomees([FromRoute][Required] int roomId, [FromHeader][Required] string token) {

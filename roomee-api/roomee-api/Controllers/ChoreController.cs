@@ -38,6 +38,37 @@ namespace roomee_api.Controllers {
 			}
 		}
 
+		[HttpGet("assignment/{roomId}")]
+		public IActionResult GetChores([FromRoute][Required] int roomId, [FromHeader][Required] string token) {
+			Dictionary<string, string> userVals;
+
+			if (Authentication.IsTokenValid(token)) {
+				userVals = Authentication.ReadToken(token);
+			} else {
+				return Problem("token is not valid");
+			}
+
+			List<Chore> chores = new List<Chore>();
+
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)){
+				conn.Open();
+				SqlCommand command= new SqlCommand(@"SELECT * FROM dbo.ChoreAssignment WHERE UserId = @id;", conn);
+				command.Parameters.AddWithValue("@id", userVals["userId"]);
+
+				using (SqlDataReader reader = command.ExecuteReader()) {
+					if (reader.HasRows) {
+						while (reader.Read()) {
+							chores.Add(Chore.FromChoreId(reader.GetInt32(1)));
+						}
+					} else {
+						return Problem("no chores assigned");
+					}
+				}
+			}
+
+			return Ok(JsonConvert.SerializeObject(chores, Formatting.Indented));
+		}
+
 		[HttpPost]
 		public IActionResult CreateChore([FromBody][Required] Chore chore, [FromHeader][Required] string token) {
 			if (chore.Name == string.Empty || chore.Name == null) {
