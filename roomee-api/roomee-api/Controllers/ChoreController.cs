@@ -121,6 +121,48 @@ namespace roomee_api.Controllers {
 				}
 
 			}
+
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+				conn.Open();
+
+				SqlCommand command = new SqlCommand(@"SELECT * FROM Chore ORDER BY ChoreId DESC;", conn);
+
+				using (SqlDataReader reader = command.ExecuteReader()) {
+					if (reader.HasRows) {
+						reader.Read();
+
+						return Ok(JsonConvert.SerializeObject(reader.GetInt32(0), Formatting.Indented));
+
+					} else {
+						return null;
+					}
+				}
+			}
+		}
+
+		[HttpPost("assign/{choreId}")]
+		public IActionResult AssignChore([FromRoute][Required] int choreId, [FromQuery][Required] int userId, [FromHeader][Required] string token) {
+
+			if (!Authentication.IsTokenValid(token)) {
+				return Problem("token is not valid");
+			}
+
+			using (SqlConnection conn = new SqlConnection(Startup.ConnectionString)) {
+				conn.Open();
+
+				SqlCommand command = new SqlCommand(@"INSERT INTO dbo.ChoreAssignment (ChoreId, UserId, StatusId) VALUES (@choreId, @userId, @statusId);", conn);
+				command.Parameters.AddWithValue("@choreId", choreId);
+				command.Parameters.AddWithValue("@userId", userId);
+				command.Parameters.AddWithValue("@statusId", 1);
+
+
+				int rows = command.ExecuteNonQuery();
+
+				if (rows == 0) {
+					return Problem("error creating");
+				}
+
+			}
 			return Ok();
 		}
 
